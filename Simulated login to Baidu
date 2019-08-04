@@ -1,0 +1,96 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from PIL import Image
+
+chrome_option = webdriver.ChromeOptions()
+chrome_path = "/usr1/webdrivers/chromedriver"
+cookies = driver.get_cookies()
+with open("cookies.txt", "w") as fp:
+    json.dump(cookies, fp)
+
+
+def login_baidu():
+    driver = None
+    try:
+        driver = webdriver.Chrome(executable_path=chrome_path)
+        driver.get("https://www.baidu.com")
+        print(driver.title)
+        WebDriverWait(driver, 10, 0.5).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="u1"]/*[@class="lb"]')))
+        element = driver.find_element_by_xpath('//*[@id="u1"]/a[7]')
+        element.click()
+
+        WebDriverWait(driver, 10, 0.5).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="TANGRAM__PSP_10__footerULoginBtn"]')))
+        element = driver.find_element_by_xpath('//*[@id="TANGRAM__PSP_10__footerULoginBtn"]')
+        element.click()
+
+        WebDriverWait(driver, 10, 0.5).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="TANGRAM__PSP_10__userName"]')))
+        element = driver.find_element_by_xpath('//*[@id="TANGRAM__PSP_10__userName"]')
+        element.send_keys("账号")
+
+        WebDriverWait(driver, 10, 0.5).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="TANGRAM__PSP_10__password"]')))
+        element = driver.find_element_by_xpath('//*[@id="TANGRAM__PSP_10__password"]')
+        element.send_keys("密码")
+
+        WebDriverWait(driver, 10, 0.5).until(
+                    EC.element_to_be_clickable((By.XPATH, '//*[@id="TANGRAM__PSP_10__verifyCodeImg"]')))
+        element = driver.find_element_by_xpath('//*[@id="TANGRAM__PSP_10__verifyCodeImg"]')
+
+        driver.get_screenshot_as_file("qrcode.png")
+        image = Image.open("qrcode.png")
+        left = element.location.get("x")
+        top = element.location.get("y")
+        right = left + element.size.get("width")
+        bottom = top + element.size.get("height")
+        cropImg = image.crop((left, top, right, bottom))
+        cropImg.save("code.png")
+
+        yanzheng = input(">>>")
+        WebDriverWait(driver, 10, 0.5).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="TANGRAM__PSP_10__verifyCode"]')))
+        element = driver.find_element_by_xpath('//*[@id="TANGRAM__PSP_10__verifyCode"]')
+        element.send_keys(yanzheng)
+
+        WebDriverWait(driver, 10, 0.5).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="TANGRAM__PSP_10__submit"]')))
+        element = driver.find_element_by_xpath('//*[@id="TANGRAM__PSP_10__submit"]')
+        element.click()
+
+        # 如果需要手机验证码
+        try:
+            WebDriverWait(driver, 10, 0.5).until(
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="TANGRAM__36__button_send_mobile"]')))
+            element = driver.find_element_by_xpath('//*[@id="TANGRAM__36__button_send_mobile"]')
+            element.click()
+
+            WebDriverWait(driver, 10, 0.5).until(
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="TANGRAM__36__input_vcode"]')))
+            element = driver.find_element_by_xpath('//*[@id="TANGRAM__36__input_vcode"]')
+            duanxin = input(">>>")
+            element.send_keys(duanxin)
+
+            WebDriverWait(driver, 10, 0.5).until(
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="TANGRAM__36__button_submit"]')))
+            element = driver.find_element_by_xpath('//*[@id="TANGRAM__36__button_submit"]')
+            element.click()
+        except Exception as e:
+            print(e)
+
+        driver.get_screenshot_as_file("screen.png")
+    finally:
+        print("关闭")
+        if driver:
+            driver.quit()
+            
+def read_cookies():
+    # 设置cookies前必须访问一次百度的页面
+    driver.get("http://www.baidu.com")
+    with open("cookies.txt", "r") as fp:
+        cookies = json.load(fp)
+        for cookie in cookies:
+            # cookie.pop('domain')  # 如果报domain无效的错误
+            driver.add_cookie(cookie)
+
+    driver.get("http://www.baidu.com")
