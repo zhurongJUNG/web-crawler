@@ -1,0 +1,53 @@
+import pandas as pd
+import re
+from openpyxl import load_workbook
+
+
+def get_spec():
+    data = pd.read_excel('corps_cmsk_a.xlsx','Sheet3')
+    data_intro = data['公司简介'].to_list()
+    lst_web =[]
+    lst_location = []
+    lst_connection = []
+    for intro in data_intro:
+        try:
+            reg_web = r'官网：(.*?)\n邮箱'
+            reg_location = r'地址：(.*?)附近企业'
+            reg_tel = r'(.*?) 更多'
+            reg_email = r'\n(.*?) 地址'
+
+            reg_web_get = re.findall(reg_web,intro)
+            reg_location_get = re.findall(reg_location,intro)
+            reg_tel_get = re.findall(reg_tel,intro)
+            reg_email_get = re.findall(reg_email, intro)
+
+            str_web_get = ''.join(reg_web_get).strip(' 认证')
+            str_location_get = ''.join(reg_location_get)
+            str_tel_get = ''.join(reg_tel_get)
+            str_email_get = ''.join(reg_email_get)
+            str_connection = str_tel_get +'  '+ str_email_get
+
+            print(str_web_get)
+            print(str_location_get)
+            print(str_connection)
+
+            lst_web.append(str_web_get)
+            lst_location.append(str_location_get)
+            lst_connection.append(str_connection)
+        except Exception:
+            lst_web.append('none')
+            lst_location.append('none')
+
+    data['公司网址'] = lst_web
+    data['公司地址'] = lst_location
+    data['联系信息'] = lst_connection
+
+    excelWriter = pd.ExcelWriter('corps_cmsk_a2.xlsx', engine = 'openpyxl')
+    book = load_workbook(excelWriter.path)
+    excelWriter.book = book
+    data.drop(['公司简介'], axis=1).to_excel(excelWriter,'Sheet1')
+    excelWriter.close()
+
+
+if __name__ == '__main__':
+    get_spec()
