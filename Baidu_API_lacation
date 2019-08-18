@@ -1,0 +1,36 @@
+import requests
+import pandas as pd
+import json
+
+
+def get_lnglat():
+    corps = pd.read_excel('corps_cmsk1.xlsx', 'cmsk')
+    lst_location = corps["公司地址"].to_list()
+    url = []
+    longitude = []
+    latitude = []
+    for locat in lst_location:
+        try:
+            single_url = "http://api.map.baidu.com/geocoding/v3/?address="+ locat + "&output=json&ak=bm5WIh0Iv3VbG7x7WPsjkrzbGw23mGdK"
+            lnglat = json.loads(requests.get(single_url).text)
+            result = lnglat['result']
+            location0 = result['location']
+            lng = location0['lng']
+            lat = location0['lat']
+            print('经度：',lng, '纬度：',lat)
+            longitude.append(lng)
+            latitude.append(lat)
+            url.append(single_url)
+        except Exception:
+            longitude.append('no find')
+            latitude.append('no find')
+            print('地址显示未找到')
+
+    corps["longitude"] = longitude
+    corps["latitude"] = latitude
+    corps.to_excel("corps_cmsk_ll.xlsx", 'maps')
+
+if __name__ == '__main__':
+    get_lnglat()
+
+
